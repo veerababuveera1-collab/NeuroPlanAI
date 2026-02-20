@@ -4,165 +4,208 @@ import google.generativeai as genai
 import time
 from datetime import datetime, timedelta
 
-# --- 1. PAGE CONFIG & PREMIUM THEME ---
-st.set_page_config(page_title="NeuroPlan AI | Neural Study OS", page_icon="⚡", layout="wide")
+# --- 1. THE ARCHITECT'S UI ENGINE (PREMIUM CSS) ---
+st.set_page_config(
+    page_title="NeuroPlan AI | Premium Edition",
+    page_icon="💎",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
 st.markdown("""
     <style>
-    /* Midnight Gold Cyberpunk Theme */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@200&display=swap');
+
+    /* Executive Obsidian Theme */
     .stApp {
-        background-color: #050505;
-        background-image: radial-gradient(#1a1a1a 1px, transparent 1px);
-        background-size: 30px 30px;
-    }
-    
-    /* Elegant Login Container */
-    .login-container {
-        background: rgba(10, 10, 10, 0.95);
-        padding: 60px;
-        border-radius: 5px;
-        border-left: 5px solid #D4AF37;
-        box-shadow: 0 20px 50px rgba(0,0,0,1);
-        text-align: left;
-        margin-top: 5vh;
+        background: radial-gradient(circle at 20% 20%, #1a1a1a 0%, #050505 100%);
+        color: #FFFFFF;
+        font-family: 'Inter', sans-serif;
     }
 
-    .brand-text {
-        color: #D4AF37;
-        font-family: 'Courier New', monospace;
-        font-size: 3.2rem !important;
-        font-weight: 900;
-        letter-spacing: -1px;
-        text-transform: uppercase;
+    /* Modern Glassmorphism Container */
+    .executive-card {
+        background: rgba(255, 255, 255, 0.02);
+        backdrop-filter: blur(40px);
+        -webkit-backdrop-filter: blur(40px);
+        border-radius: 24px;
+        padding: 3.5rem;
+        border: 1px solid rgba(212, 175, 55, 0.12);
+        box-shadow: 0 40px 100px rgba(0, 0, 0, 0.9);
+        text-align: center;
+        max-width: 550px;
+        margin: auto;
+    }
+
+    /* Typography */
+    .brand-header {
+        background: linear-gradient(180deg, #FFFFFF 0%, #D4AF37 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 4rem !important;
+        font-weight: 800;
+        letter-spacing: -4px;
         margin-bottom: 0;
     }
 
-    .terminal-sub {
-        color: #555;
-        font-family: 'Courier New', monospace;
-        font-size: 0.85rem;
-        margin-bottom: 30px;
-        border-right: 2px solid #D4AF37;
-        width: fit-content;
-        padding-right: 8px;
-        animation: blink 1s infinite;
+    .system-status {
+        font-family: 'JetBrains Mono', monospace;
+        color: #D4AF37;
+        font-size: 0.7rem;
+        letter-spacing: 5px;
+        text-transform: uppercase;
+        margin-bottom: 3rem;
+        opacity: 0.7;
     }
 
-    @keyframes blink { 50% { border-color: transparent; } }
-
-    /* Input Field Styling */
+    /* Luxury Form Inputs */
     .stTextInput > div > div > input {
-        background-color: #111 !important;
+        background-color: rgba(0, 0, 0, 0.4) !important;
         color: #D4AF37 !important;
-        border: 1px solid #333 !important;
-        border-radius: 0px !important;
+        border: 1px solid rgba(212, 175, 55, 0.15) !important;
+        border-radius: 12px !important;
+        height: 50px;
+        font-size: 1rem !important;
     }
 
-    /* Professional Gold Button */
+    .stTextInput > div > div > input:focus {
+        border-color: #D4AF37 !important;
+        box-shadow: 0 0 20px rgba(212, 175, 55, 0.1) !important;
+    }
+
+    /* Call to Action Button */
     .stButton > button {
-        background: #D4AF37 !important;
-        color: black !important;
-        font-family: 'Courier New', monospace;
-        font-weight: bold !important;
-        border-radius: 0px !important;
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%) !important;
+        color: #000000 !important;
+        font-weight: 700 !important;
         border: none !important;
-        height: 45px;
-        transition: 0.4s;
+        border-radius: 12px !important;
+        height: 55px !important;
+        width: 100%;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-top: 1rem;
     }
 
     .stButton > button:hover {
-        background: #ffffff !important;
-        box-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
-        color: black !important;
+        transform: scale(1.02);
+        box-shadow: 0 15px 30px rgba(212, 175, 55, 0.4);
+        color: #000 !important;
     }
+
+    /* Custom Metrics & Progress */
+    [data-testid="stMetricValue"] { color: #D4AF37 !important; font-weight: 800 !important; }
+    .stProgress > div > div > div > div { background-color: #D4AF37 !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. SESSION STATE ---
-if 'logged_in' not in st.session_state: st.session_state.logged_in = False
-if 'xp' not in st.session_state: st.session_state.xp = 0
+# --- 2. BACKEND INITIALIZATION ---
+if 'authenticated' not in st.session_state: st.session_state.authenticated = False
+if 'xp_points' not in st.session_state: st.session_state.xp_points = 0
 
-# --- 3. AI CONFIGURATION ---
-try:
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    model = genai.GenerativeModel('gemini-1.5-flash')
-except:
-    st.error("🔑 API Key Error: Check .streamlit/secrets.toml")
+def init_ai():
+    try:
+        genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+        return genai.GenerativeModel('gemini-1.5-flash')
+    except:
+        return None
 
-# --- 4. LOGIN SCREEN ---
-if not st.session_state.logged_in:
-    _, col2, _ = st.columns([1, 1.6, 1])
-    with col2:
-        st.markdown('<div class="login-container">', unsafe_allow_html=True)
-        st.markdown('<h1 class="brand-text">NEUROPLAN AI</h1>', unsafe_allow_html=True)
-        st.markdown('<div class="terminal-sub">INITIALIZING COGNITIVE_OS...</div>', unsafe_allow_html=True)
+ai_model = init_ai()
+
+# --- 3. THE LOGIN INTERFACE ---
+if not st.session_state.authenticated:
+    st.markdown("<br><br><br>", unsafe_allow_html=True)
+    _, col, _ = st.columns([1, 1.4, 1])
+    
+    with col:
+        st.markdown('<div class="executive-card">', unsafe_allow_html=True)
+        st.markdown('<h1 class="brand-header">NeuroPlan AI</h1>', unsafe_allow_html=True)
+        st.markdown('<div class="system-status">Neural Encryption Active // v4.0.2</div>', unsafe_allow_html=True)
         
-        user = st.text_input("SCHOLAR_ID", placeholder="Enter Identity")
-        pwd = st.text_input("ACCESS_KEY", type="password", placeholder="••••••••")
+        user_id = st.text_input("SCHOLAR_IDENTITY", placeholder="Enter ID...")
+        access_key = st.text_input("SECURITY_TOKEN", type="password", placeholder="••••••••")
         
-        # User Credentials Info (Visual Only)
-        st.markdown(f'<p style="color:#444; font-size:0.7rem;">ENCRYPTION: AES-256 ACTIVE</p>', unsafe_allow_html=True)
-
-        if st.button("AUTHORIZE ACCESS"):
-            if user and pwd == "ai123":
+        if st.button("AUTHENTICATE"):
+            if user_id and access_key == "ai123":
                 with st.spinner("Decoding Neural Pathways..."):
-                    time.sleep(1.5)
-                    st.session_state.logged_in = True
+                    time.sleep(2)
+                    st.session_state.authenticated = True
                     st.rerun()
             else:
-                st.error("INVALID_KEY: ACCESS_DENIED")
+                st.toast("Access Revoked: Invalid Token", icon="🚫")
+        
+        st.markdown('<p style="color:#555; font-size:0.7rem; margin-top:3rem; letter-spacing:1px;">© 2026 NEUROPLAN ENTERPRISE SYSTEMS</p>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-# --- 5. DASHBOARD (POST-LOGIN) ---
+# --- 4. THE COMMAND DASHBOARD ---
 else:
-    st.markdown(f"### ⚡ NEUROPLAN // COMMAND_CENTER")
-    
+    # Sidebar Navigation & Profile
     with st.sidebar:
-        st.markdown("### 🛠️ SESSION")
-        st.info(f"User: Admin\nStatus: Online")
-        if st.button("TERMINATE"):
-            st.session_state.logged_in = False
+        st.markdown(f"## 💎 Level {int(st.session_state.xp_points // 100) + 1}")
+        st.progress(st.session_state.xp_points % 100 / 100)
+        st.write(f"Experience: {st.session_state.xp_points} XP")
+        st.divider()
+        if st.button("LOGOUT"):
+            st.session_state.authenticated = False
             st.rerun()
 
-    # Main Planner Logic
-    with st.expander("📝 PLANNER CONFIGURATION", expanded=True):
+    st.markdown("### 🏛️ Operational Dashboard")
+    
+    # Configuration Panel
+    with st.container():
+        st.markdown("#### ⚙️ MISSION PARAMETERS")
         c1, c2, c3 = st.columns(3)
         with c1:
-            subs = st.multiselect("Subjects", ["Mathematics", "Computer Science", "Physics", "Chemistry", "Economics"])
+            active_subs = st.multiselect("Subjects", ["Mathematics", "Deep Learning", "Applied Physics", "Business Law"])
         with c2:
-            deadline = st.date_input("Exam Date", datetime.now() + timedelta(days=10))
+            deadline_date = st.date_input("Deadline", datetime.now() + timedelta(days=14))
         with c3:
-            intensity = st.select_slider("Intensity", ["Low", "Medium", "High"])
+            intensity_mode = st.select_slider("Intensity", ["Sustain", "Optimized", "Overdrive"])
 
-    weakness = st.text_input("Target Weak Point", placeholder="e.g., Organic Chemistry mechanisms")
+    bottlenecks = st.text_area("Cognitive Constraints", placeholder="Specify complex topics or areas of friction...")
 
-    if st.button("EXECUTE GENERATIVE ANALYSIS"):
-        days = (deadline - datetime.now().date()).days
-        with st.status("🧠 AI Architecting Your Success...", expanded=True) as status:
-            prompt = f"Act as an expert study coach. Create a 3-step study strategy for {subs} with focus on {weakness}. Days left: {days}. Intensity: {intensity}."
-            try:
-                response = model.generate_content(prompt)
-                status.update(label="OPTIMIZATION COMPLETE", state="complete")
-                
-                st.markdown("### 📋 YOUR NEURAL PROTOCOL")
-                st.write(response.text)
-                
-                # Metrics Section
-                m1, m2 = st.columns(2)
-                m1.metric("Countdown", f"{days} Days")
-                m2.metric("XP Multiplier", "1.5x")
-            except:
-                st.error("Neural Node timeout. Check internet connection.")
+    if st.button("EXECUTE GENERATIVE ARCHITECTURE"):
+        if not active_subs or not ai_model:
+            st.warning("Ensure subjects are selected and API key is active.")
+        else:
+            days_to_go = (deadline_date - datetime.now().date()).days
+            with st.status("🧠 Consulting Neural Engine...", expanded=True) as status:
+                prompt = f"""
+                You are a senior academic strategist. Design a high-yield study plan for {active_subs}.
+                Focus heavily on solving these friction points: {bottlenecks}.
+                Timeline: {days_to_go} days. Mode: {intensity_mode}.
+                Provide a structured table and 3 tactical tips for long-term retention.
+                """
+                try:
+                    response = ai_model.generate_content(prompt)
+                    status.update(label="STRATEGY DEPLOYED", state="complete")
+                    
+                    res_col, stats_col = st.columns([2, 1])
+                    with res_col:
+                        st.markdown("##### 📜 THE PROTOCOL")
+                        st.markdown(response.text)
+                    
+                    with stats_col:
+                        st.markdown("##### 📈 ANALYTICS")
+                        st.metric("Deadline Window", f"{days_to_go} Days")
+                        st.metric("Cognitive Load", f"{'92%' if intensity_mode == 'Overdrive' else '65%'}")
+                        st.info("💡 Pro-Tip: Active Recall sessions are most effective in your first 90 minutes.")
+                except Exception as e:
+                    st.error("AI Node Offline. Please check connectivity.")
 
-    # Gamification
-    st.markdown("---")
-    st.markdown("#### 🏆 PROGRESS_LOGGER")
-    t1, t2, t3 = st.columns(3)
-    if t1.checkbox("Deep Work Sprint"): st.session_state.xp += 33
-    if t2.checkbox("Active Recall Drill"): st.session_state.xp += 33
-    if t3.checkbox("Daily Summary"): st.session_state.xp += 34
-
-    st.progress(st.session_state.xp % 101 / 100, text=f"Daily Quota: {int(st.session_state.xp % 101)}%")
+    # Gamification Loop
+    st.divider()
+    st.markdown("#### 🏆 ACTIVE ACHIEVEMENTS")
+    cols = st.columns(3)
+    t1 = cols[0].checkbox("Deep Work Completed (2hr)")
+    t2 = cols[1].checkbox("Weak Area Breakthrough")
+    t3 = cols[2].checkbox("Daily Review Logged")
     
-    if st.session_state.xp >= 100:
-        st.balloons()
+    # Update XP
+    new_xp = sum([t1, t2, t3]) * 34
+    if new_xp > st.session_state.xp_points:
+        st.session_state.xp_points = new_xp
+        if st.session_state.xp_points >= 100:
+            st.balloons()
+            st.toast("New Rank Achieved!", icon="🏅")
