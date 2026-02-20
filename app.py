@@ -5,7 +5,7 @@ import time
 from datetime import datetime, timedelta
 
 # --- 1. PAGE CONFIG & PREMIUM THEME ---
-st.set_page_config(page_title="AI Study Planner | V2.0", page_icon="⚡", layout="wide")
+st.set_page_config(page_title="NeuroPlan AI | Neural Study OS", page_icon="⚡", layout="wide")
 
 st.markdown("""
     <style>
@@ -27,25 +27,28 @@ st.markdown("""
         margin-top: 5vh;
     }
 
-    .title-text {
+    .brand-text {
         color: #D4AF37;
         font-family: 'Courier New', monospace;
-        font-size: 3rem !important;
+        font-size: 3.2rem !important;
         font-weight: 900;
-        letter-spacing: -2px;
+        letter-spacing: -1px;
         text-transform: uppercase;
+        margin-bottom: 0;
     }
 
-    /* Subtitle Terminal Style */
     .terminal-sub {
         color: #555;
         font-family: 'Courier New', monospace;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         margin-bottom: 30px;
         border-right: 2px solid #D4AF37;
         width: fit-content;
-        padding-right: 5px;
+        padding-right: 8px;
+        animation: blink 1s infinite;
     }
+
+    @keyframes blink { 50% { border-color: transparent; } }
 
     /* Input Field Styling */
     .stTextInput > div > div > input {
@@ -69,12 +72,8 @@ st.markdown("""
 
     .stButton > button:hover {
         background: #ffffff !important;
-        box-shadow: 0 0 15px #D4AF37;
-    }
-
-    /* XP Progress Bar */
-    .stProgress > div > div > div > div {
-        background-color: #D4AF37 !important;
+        box-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
+        color: black !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -88,85 +87,82 @@ try:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
     model = genai.GenerativeModel('gemini-1.5-flash')
 except:
-    st.error("🔑 AI Key Missing. Please check secrets.toml")
+    st.error("🔑 API Key Error: Check .streamlit/secrets.toml")
 
-# --- 4. LOGIN SCREEN (THEMED) ---
+# --- 4. LOGIN SCREEN ---
 if not st.session_state.logged_in:
-    _, col2, _ = st.columns([1, 1.5, 1])
+    _, col2, _ = st.columns([1, 1.6, 1])
     with col2:
         st.markdown('<div class="login-container">', unsafe_allow_html=True)
-        st.markdown('<h1 class="title-text">CORE_LINK V2</h1>', unsafe_allow_html=True)
-        st.markdown('<div class="terminal-sub">SYSTEM STATUS: READY_TO_LOAD...</div>', unsafe_allow_html=True)
+        st.markdown('<h1 class="brand-text">NEUROPLAN AI</h1>', unsafe_allow_html=True)
+        st.markdown('<div class="terminal-sub">INITIALIZING COGNITIVE_OS...</div>', unsafe_allow_html=True)
         
-        user = st.text_input("AUTHORIZED_ID", placeholder="Enter ID")
-        pwd = st.text_input("PASS_KEY", type="password", placeholder="••••••••")
+        user = st.text_input("SCHOLAR_ID", placeholder="Enter Identity")
+        pwd = st.text_input("ACCESS_KEY", type="password", placeholder="••••••••")
         
-        if st.button("EXECUTE LOGIN"):
+        # User Credentials Info (Visual Only)
+        st.markdown(f'<p style="color:#444; font-size:0.7rem;">ENCRYPTION: AES-256 ACTIVE</p>', unsafe_allow_html=True)
+
+        if st.button("AUTHORIZE ACCESS"):
             if user and pwd == "ai123":
-                with st.spinner("Decrypting Access Protocols..."):
+                with st.spinner("Decoding Neural Pathways..."):
                     time.sleep(1.5)
                     st.session_state.logged_in = True
                     st.rerun()
             else:
-                st.error("🚨 ACCESS_DENIED: UNAUTHORIZED_KEY")
+                st.error("INVALID_KEY: ACCESS_DENIED")
         st.markdown('</div>', unsafe_allow_html=True)
 
 # --- 5. DASHBOARD (POST-LOGIN) ---
 else:
-    # Top Stats Bar
-    st.markdown(f"### ⚡ Welcome back, {datetime.now().strftime('%H:%M')} | Level: {int(st.session_state.xp // 100) + 1}")
+    st.markdown(f"### ⚡ NEUROPLAN // COMMAND_CENTER")
     
-    # Sidebar
     with st.sidebar:
-        st.title("⚙️ MODES")
-        st.radio("View", ["Daily Plan", "Performance", "Neural Tips"])
+        st.markdown("### 🛠️ SESSION")
+        st.info(f"User: Admin\nStatus: Online")
         if st.button("TERMINATE"):
             st.session_state.logged_in = False
             st.rerun()
 
-    # Main Config
-    with st.container():
-        st.markdown("#### 🛠️ SCRIPT_PARAMETERS")
+    # Main Planner Logic
+    with st.expander("📝 PLANNER CONFIGURATION", expanded=True):
         c1, c2, c3 = st.columns(3)
         with c1:
-            subs = st.multiselect("Subjects", ["Mathematics", "Physics", "Computer Science", "Biology"])
+            subs = st.multiselect("Subjects", ["Mathematics", "Computer Science", "Physics", "Chemistry", "Economics"])
         with c2:
-            deadline = st.date_input("Deadline", datetime.now() + timedelta(days=7))
+            deadline = st.date_input("Exam Date", datetime.now() + timedelta(days=10))
         with c3:
-            mode = st.select_slider("Mode", ["Power-Save", "Standard", "Overdrive"])
+            intensity = st.select_slider("Intensity", ["Low", "Medium", "High"])
 
-    bottleneck = st.text_input("Specific Cognitive Bottleneck (Weak Area)", placeholder="e.g. Calculus, Memory Leak Detection")
+    weakness = st.text_input("Target Weak Point", placeholder="e.g., Organic Chemistry mechanisms")
 
-    if st.button("GENERATE NEURAL STRATEGY"):
+    if st.button("EXECUTE GENERATIVE ANALYSIS"):
         days = (deadline - datetime.now().date()).days
-        with st.status("🧠 Consulting Neural Engine...", expanded=True) as status:
-            prompt = f"Student studying {subs} with weakness in {bottleneck}. Exam in {days} days. Mode: {mode}. Give a 3-step high-impact study plan."
+        with st.status("🧠 AI Architecting Your Success...", expanded=True) as status:
+            prompt = f"Act as an expert study coach. Create a 3-step study strategy for {subs} with focus on {weakness}. Days left: {days}. Intensity: {intensity}."
             try:
                 response = model.generate_content(prompt)
-                status.update(label="STRATEGY_DECODED", state="complete")
+                status.update(label="OPTIMIZATION COMPLETE", state="complete")
                 
-                # Dynamic Results
-                res_col, log_col = st.columns([2, 1])
-                with res_col:
-                    st.markdown("##### 📜 THE PROTOCOL")
-                    st.info(response.text)
+                st.markdown("### 📋 YOUR NEURAL PROTOCOL")
+                st.write(response.text)
                 
-                with log_col:
-                    st.markdown("##### 📈 METRICS")
-                    st.metric("Time Remaining", f"{days} Days")
-                    st.metric("Success Probability", "89%")
+                # Metrics Section
+                m1, m2 = st.columns(2)
+                m1.metric("Countdown", f"{days} Days")
+                m2.metric("XP Multiplier", "1.5x")
             except:
-                st.error("AI node failed to respond.")
+                st.error("Neural Node timeout. Check internet connection.")
 
-    # XP Section
+    # Gamification
     st.markdown("---")
-    st.markdown("#### 🏆 PROGRESS_TRACKER")
-    p1, p2, p3 = st.columns(3)
-    if p1.checkbox("Sprint 01: Focus"): st.session_state.xp += 33
-    if p2.checkbox("Sprint 02: Practice"): st.session_state.xp += 33
-    if p3.checkbox("Sprint 03: Review"): st.session_state.xp += 34
+    st.markdown("#### 🏆 PROGRESS_LOGGER")
+    t1, t2, t3 = st.columns(3)
+    if t1.checkbox("Deep Work Sprint"): st.session_state.xp += 33
+    if t2.checkbox("Active Recall Drill"): st.session_state.xp += 33
+    if t3.checkbox("Daily Summary"): st.session_state.xp += 34
 
-    st.progress(st.session_state.xp % 100 / 100, text=f"Daily Quota: {int(st.session_state.xp % 101)}%")
+    st.progress(st.session_state.xp % 101 / 100, text=f"Daily Quota: {int(st.session_state.xp % 101)}%")
     
     if st.session_state.xp >= 100:
         st.balloons()
