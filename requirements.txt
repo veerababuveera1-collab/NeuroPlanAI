@@ -2,3 +2,5 @@ streamlit
 google-generativeai
 pandas
 datetime
+google-generativeai==0.8.3
+streamlit
